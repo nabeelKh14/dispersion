@@ -16,6 +16,7 @@ export class Studio {
   readonly backdrop: THREE.Mesh
   readonly floor: THREE.Mesh
   readonly caustic: THREE.Mesh
+  // (caustic is public so the world can keep it aligned with the beam)
   private backdropMat: THREE.ShaderMaterial
   private floorMat: THREE.ShaderMaterial
   private causticMat: THREE.ShaderMaterial
@@ -162,31 +163,34 @@ export class Studio {
         }
 
         void main() {
+          // A spectral BAND on the floor, running away from the prism —
+          // which is what a real prism projects. The band's cross-section
+          // is the spectrum: red low, violet high (or the reverse), and the
+          // band widens with distance from the glass.
           vec2 p = vUv * 2.0 - 1.0;
-          float ang = atan(p.y, max(p.x, 0.001));
-          float rad = length(p);
+          float along = p.x * 0.5 + 0.5;      // 0 at the glass, 1 far away
+          float across = p.y;                   // -1..1 across the band
 
-          float band = 0.0;
-          vec3 col = vec3(0.0);
-          for (int i = 0; i < 7; i++) {
-            float fi = float(i) / 6.0;
-            float a = mix(-0.6, 0.6, fi) * uSpread;
-            float d = ang - a;
-            float w = exp(-d * d * 150.0);
-            band += w;
-            col += spectrum(fi) * w;
-          }
+          // the band fans out as it travels
+          float width = 0.10 + along * 0.42 * (0.4 + uSpread * 0.6);
+          float band = exp(-(across * across) / (2.0 * width * width));
 
-          float falloff = exp(-rad * rad * 3.0);
-          float a = band * falloff * 0.55 * uEnergy;
-          gl_FragColor = vec4(col * a * 2.4, a);
+          // the spectral gradient across the band
+          float t = clamp(across * 0.5 + 0.5, 0.0, 1.0);
+          vec3 col = spectrum(t);
+
+          // energy falls off with distance from the glass
+          float alongFade = exp(-along * 1.9) * smoothstep(0.0, 0.12, along);
+
+          float a = band * alongFade * 0.5 * uEnergy;
+          gl_FragColor = vec4(col * a * 2.6, a);
         }
       `,
     })
 
-    this.caustic = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), this.causticMat)
+    this.caustic = new THREE.Mesh(new THREE.PlaneGeometry(14, 7), this.causticMat)
     this.caustic.rotation.x = -Math.PI / 2
-    this.caustic.position.set(3.6, -1.87, 0)
+    this.caustic.position.set(3.2, -1.87, 0)
     this.caustic.renderOrder = -4
   }
 

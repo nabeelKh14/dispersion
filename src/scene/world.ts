@@ -253,6 +253,8 @@ export class World {
   private spectrumGlows: THREE.Sprite[] = []
   private orderRay: THREE.Mesh
   private orderGlow: THREE.Sprite
+  /** the refracted core inside the glass */
+  private coreRay: THREE.Mesh
   private motes!: THREE.Points
   private moteMat!: THREE.ShaderMaterial
   private keyLight: THREE.DirectionalLight
@@ -329,7 +331,7 @@ export class World {
     // sits on top of the object and blows the whole frame out.
     this.inputRay = createRay({
       color: '#ffffff',
-      length: 5.6,
+      length: 5.78,
       radius: 0.062,
       opacity: 0.7,
       flicker: 0.25,
@@ -339,7 +341,7 @@ export class World {
     this.inputRay.position.set(-6.4, 0, 0)
     this.scene.add(this.inputRay)
 
-    this.inputGlow = createGlow('#eaf2ff', 0.85)
+    this.inputGlow = createGlow('#eaf2ff', 0.55)
     this.inputGlow.position.set(-6.2, 0, 0)
     this.scene.add(this.inputGlow)
 
@@ -364,6 +366,18 @@ export class World {
       this.spectrumGlows.push(glow)
       this.scene.add(glow)
     })
+
+    // ── the refracted core: spectral light crossing the glass ──
+    this.coreRay = createRay({
+      color: '#cfe6ff',
+      length: 1.9,
+      radius: 0.05,
+      opacity: 0.9,
+      travel: 1.2,
+    })
+    this.coreRay.rotation.z = -Math.PI / 2
+    this.coreRay.position.set(0, 0, 0)
+    this.scene.add(this.coreRay)
 
     // ── the ordered execution beam ──
     this.orderRay = createRay({
@@ -582,17 +596,32 @@ export class World {
     const inMat = this.inputRay.userData.mat as THREE.ShaderMaterial
     inMat.uniforms.uTime.value = t
     // the beam is revealed along its length, and always ends at the glass
-    inMat.uniforms.uHead.value = 0.04 + s.inputProgress * 0.96
+    inMat.uniforms.uHead.value = 0.04 + s.inputProgress * 1.0
     inMat.uniforms.uTail.value = 0.0
-    inMat.uniforms.uOpacity.value = 0.2 + s.energy * 0.3
-    this.inputRay.position.x = s.prismPos.x - 6.4
-    // the glow rides the beam's leading edge
-    this.inputGlow.position.set(
-      s.prismPos.x - 6.4 + s.inputProgress * 5.35,
-      0,
+    inMat.uniforms.uOpacity.value = 0.3 + s.energy * 0.36
+    // The beam is anchored to the prism: it always strikes the glass.
+    this.inputRay.position.set(s.prismPos.x - 6.4, s.prismPos.y, 0)
+    // The glow sits exactly on the beam's TIP — the contact point where
+    // white light enters the prism. Put it behind the tip and the beam
+    // appears to stop short of the glass.
+    const beamTip = s.prismPos.x - 6.4 + s.inputProgress * 5.78
+    this.inputGlow.position.set(beamTip, s.prismPos.y, 0)
+    ;(this.inputGlow.material as THREE.SpriteMaterial).opacity = 0.12 + s.energy * 0.22
+
+    // ── the refracted core inside the glass ──
+    // It starts at the beam's contact point and crosses the glass, so the
+    // path reads: white in → spectral core → dispersed fan out.
+    const cMat = this.coreRay.userData.mat as THREE.ShaderMaterial
+    cMat.uniforms.uTime.value = t
+    cMat.uniforms.uOpacity.value = Math.min(1, s.dispersion) * 0.95
+    cMat.uniforms.uHead.value = 0.1 + Math.min(1, s.dispersion) * 0.9
+    cMat.uniforms.uTravel.value = 1.3
+    this.coreRay.position.set(
+      s.prismPos.x - 0.95,
+      s.prismPos.y,
       0,
     )
-    ;(this.inputGlow.material as THREE.SpriteMaterial).opacity = 0.1 + s.energy * 0.2
+    this.coreRay.rotation.z = -Math.PI / 2 + 0.06
 
     // ── dispersed spectrum ──
     const spread = s.dispersion
@@ -606,7 +635,7 @@ export class World {
       ray.rotation.z = -Math.PI / 2 + angle
       // originate just outside the prism's right face
       ray.position.set(
-        s.prismPos.x + 0.86 + Math.cos(angle) * 0.1,
+        s.prismPos.x + 0.7 + Math.cos(angle) * 0.1,
         s.prismPos.y + Math.sin(angle) * 0.1,
         0,
       )
@@ -616,7 +645,7 @@ export class World {
       mat.uniforms.uTravel.value = 0.5 + spread * 0.5
 
       const glow = this.spectrumGlows[i]
-      const gx = s.prismPos.x + 0.9 + Math.cos(angle) * 0.35
+      const gx = s.prismPos.x + 0.78 + Math.cos(angle) * 0.35
       const gy = s.prismPos.y + Math.sin(angle) * 0.35
       glow.position.set(gx, gy, 0)
       ;(glow.material as THREE.SpriteMaterial).opacity = Math.max(0, spread - 0.2) * 0.9 * (1 - s.convergence * 0.9)
@@ -628,12 +657,15 @@ export class World {
     oMat.uniforms.uOpacity.value = s.convergence * 1.45
     oMat.uniforms.uHead.value = 0.2 + s.convergence * 0.8
     oMat.uniforms.uTravel.value = 1.4
-    this.orderRay.position.x = s.prismPos.x + 0.9
+    this.orderRay.position.x = s.prismPos.x + 0.74
     this.orderGlow.position.set(s.prismPos.x + 0.95 + s.convergence * 1.4, s.prismPos.y, 0)
     ;(this.orderGlow.material as THREE.SpriteMaterial).opacity = s.convergence * 0.95
 
     // ── studio ──
     this.studio.update(t, s.key, s.energy, Math.min(s.dispersion, 1.4))
+    // the caustic pool follows the beam, so the light path reads as one
+    // continuous run from source to spectrum to floor
+    this.studio.caustic.position.x = s.prismPos.x + 6.4
 
     // ── motes ──
     this.moteMat.uniforms.uTime.value = t
