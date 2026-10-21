@@ -20,6 +20,11 @@ function findChromium() {
   return undefined
 }
 
+const scrollTo = (y) =>
+  window.__dispersion?.lenis
+    ? window.__dispersion.lenis.scrollTo(y, { immediate: true })
+    : window.scrollTo({ top: y, behavior: 'instant' })
+
 const OUT = '/Users/openclaw/.hermes/cache/scratch/disp_shots2'
 fs.rmSync(OUT, { recursive: true, force: true })
 fs.mkdirSync(OUT, { recursive: true })
@@ -45,7 +50,7 @@ console.log('SCROLL_HEIGHT', total)
 // walk the whole page in fine steps and capture each scene
 const stops = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.88, 0.95, 1.0]
 for (let i = 0; i < stops.length; i++) {
-  await page.evaluate((y) => window.scrollTo({ top: y, behavior: 'instant' }), Math.round(total * stops[i]))
+  await page.evaluate(scrollTo, Math.round(total * stops[i]))
   await page.waitForTimeout(1300)
   await page.screenshot({ path: `${OUT}/s${String(i).padStart(2, '0')}.png` })
 }
@@ -53,7 +58,7 @@ for (let i = 0; i < stops.length; i++) {
 // the film section specifically
 const filmTop = await page.evaluate(() => document.getElementById('film')?.offsetTop ?? -1)
 if (filmTop > 0) {
-  await page.evaluate((y) => window.scrollTo({ top: y, behavior: 'instant' }), filmTop + 200)
+  await page.evaluate(scrollTo, filmTop + 200)
   await page.waitForTimeout(2500)
   await page.screenshot({ path: `${OUT}/film.png` })
   const v = await page.evaluate(() => {

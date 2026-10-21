@@ -24,6 +24,11 @@ function findChromium() {
 const OUT = '/Users/openclaw/.hermes/cache/scratch/disp_shots'
 fs.mkdirSync(OUT, { recursive: true })
 
+const scrollTo = (y) =>
+  window.__dispersion?.lenis
+    ? window.__dispersion.lenis.scrollTo(y, { immediate: true })
+    : window.scrollTo({ top: y, behavior: 'instant' })
+
 const browser = await chromium.launch({
   executablePath: findChromium(),
   args: [
@@ -56,7 +61,7 @@ console.log('SCROLL_HEIGHT', total)
 
 const stops = [0, 0.08, 0.18, 0.30, 0.42, 0.52, 0.62, 0.74, 0.84, 0.94]
 for (let i = 0; i < stops.length; i++) {
-  await page.evaluate((y) => window.scrollTo({ top: y, behavior: 'instant' }), Math.round(total * stops[i]))
+  await page.evaluate(scrollTo, Math.round(total * stops[i]))
   await page.waitForTimeout(1400)
   const name = `${OUT}/f${String(i).padStart(2, '0')}_p${stops[i]}.png`
   await page.screenshot({ path: name })

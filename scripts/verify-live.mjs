@@ -8,6 +8,11 @@ import os from 'node:os'
 import path from 'node:path'
 
 const URL = process.argv[2] || 'https://dispersion-two.vercel.app'
+const scrollTo = (y) =>
+  window.__dispersion?.lenis
+    ? window.__dispersion.lenis.scrollTo(y, { immediate: true })
+    : window.scrollTo({ top: y, behavior: 'instant' })
+
 const OUT = '/Users/openclaw/.hermes/cache/scratch/disp_live'
 fs.rmSync(OUT, { recursive: true, force: true })
 fs.mkdirSync(OUT, { recursive: true })
@@ -88,7 +93,7 @@ if (enter) { await enter.click(); await page.waitForTimeout(1500) }
 
 const total = await page.evaluate(() => document.documentElement.scrollHeight - window.innerHeight)
 for (const [i, p] of [0, 0.2, 0.42, 0.62, 0.8, 0.95].entries()) {
-  await page.evaluate((y) => window.scrollTo({ top: y, behavior: 'instant' }), Math.round(total * p))
+  await page.evaluate(scrollTo, Math.round(total * p))
   await page.waitForTimeout(1100)
   await page.screenshot({ path: `${OUT}/live${i}.png` })
 }

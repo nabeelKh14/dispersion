@@ -28,6 +28,11 @@ function findChromium() {
   return undefined
 }
 
+const scrollTo = (y) =>
+  window.__dispersion?.lenis
+    ? window.__dispersion.lenis.scrollTo(y, { immediate: true })
+    : window.scrollTo({ top: y, behavior: 'instant' })
+
 const OUT = '/Users/openclaw/.hermes/cache/scratch/disp_path'
 fs.rmSync(OUT, { recursive: true, force: true })
 fs.mkdirSync(OUT, { recursive: true })
@@ -44,9 +49,22 @@ if (enter) { await enter.click(); await page.waitForTimeout(1200) }
 
 const total = await page.evaluate(() => document.documentElement.scrollHeight - window.innerHeight)
 // act 2 — the refraction
-await page.evaluate((y) => window.scrollTo({ top: y, behavior: 'instant' }), Math.round(total * 0.3))
+await page.evaluate(scrollTo, Math.round(total * 0.3))
 await page.waitForTimeout(1600)
-await page.screenshot({ path: `${OUT}/act2.png` })
+
+// hide the DOM chrome so the measurement is of the 3D scene only
+await page.addStyleTag({
+  content: '.overlay,.chrome,.journey{opacity:0 !important;visibility:hidden !important}',
+})
+await page.waitForTimeout(400)
+
+const canvas = await page.$('#stage')
+await canvas.screenshot({ path: `${OUT}/act2.png` })
+console.log('ACTIVE_SCENE', await page.evaluate(() => {
+  const s = Array.from(document.querySelectorAll('.copy-slot'))
+  const live = s.findIndex((x) => parseFloat(getComputedStyle(x).opacity) > 0.5)
+  return s[live]?.querySelector('.scene__eyebrow')?.textContent?.trim() ?? 'none'
+}))
 
 // Read the canvas pixels directly from the GL context is unreliable after
 // the frame is presented, so analyse the SCREENSHOT instead.
@@ -59,6 +77,7 @@ execSync(
 )
 const W = 1600
 const H = 900
+console.log('RAW_SIZE', (await import('node:fs')).statSync(`${OUT}/act2.rgb`).size)
 const raw = fs.readFileSync(`${OUT}/act2.rgb`)
 
 // The prism in act 2 sits around x=-1.05 world; on screen it is roughly

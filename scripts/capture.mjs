@@ -27,6 +27,11 @@ function findChromium() {
   return undefined
 }
 
+const scrollTo = (y) =>
+  window.__dispersion?.lenis
+    ? window.__dispersion.lenis.scrollTo(y, { immediate: true })
+    : window.scrollTo({ top: y, behavior: 'instant' })
+
 const OUT = '/Users/openclaw/dispersion/blender/frames'
 const URL = process.argv[2] || 'http://localhost:4173/'
 const FRAMES = Number(process.argv[3] || 180)
@@ -59,7 +64,7 @@ for (let i = 0; i < FRAMES; i++) {
   const t = i / (FRAMES - 1)
   // ease the scroll so the motion accelerates and decelerates like a film
   const eased = t * t * (3 - 2 * t)
-  await page.evaluate((y) => window.scrollTo({ top: y, behavior: 'instant' }), Math.round(total * eased))
+  await page.evaluate(scrollTo, Math.round(total * eased))
   await page.waitForTimeout(33)
   await page.screenshot({
     path: path.join(OUT, `f${String(i).padStart(4, '0')}.png`),

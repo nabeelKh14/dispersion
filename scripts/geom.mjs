@@ -55,7 +55,7 @@ console.log('GEOMETRY', JSON.stringify(geo, null, 1))
 
 // walk the first two scene boundaries and print exactly what is on screen
 for (const y of [0, 700, 1200, 1700, 2000, 2400, 3000]) {
-  await page.evaluate((v) => window.scrollTo({ top: v, behavior: 'instant' }), y)
+  await page.evaluate(scrollTo, y)
   await page.waitForTimeout(120)
   const state = await page.evaluate(() => {
     const vh = window.innerHeight

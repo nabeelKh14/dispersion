@@ -164,7 +164,7 @@ export class UI {
     journey.innerHTML =
       SCENES.map(
         (s, i) =>
-          `<section class="scene scene--${s.id}" data-scene="${i}" data-id="${s.id}"></section>`,
+          `<section class="scene scene--${s.id}" id="${s.id}" data-scene="${i}" data-id="${s.id}"></section>`,
       ).join('') +
       filmMarkup() +
       ctaMarkup()
@@ -311,9 +311,12 @@ export class UI {
 
     if (active !== this.activeIndex) {
       this.activeIndex = active
-      this.railCount.textContent = String(active + 1).padStart(2, '0')
-      this.scrollCue.classList.toggle('is-hidden', active > 0)
-      this.applySceneAccent(active)
+      // past the last act (reel / CTA) the rail holds the final act
+      const past = scrollY > filmTop - vh * 0.3
+      const shown = past ? n - 1 : active
+      this.railCount.textContent = String(shown + 1).padStart(2, '0')
+      this.scrollCue.classList.toggle('is-hidden', active > 0 || past)
+      if (!past) this.applySceneAccent(active)
       this.onSceneChangeCb?.(active)
     }
 

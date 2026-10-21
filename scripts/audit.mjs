@@ -27,6 +27,11 @@ function findChromium() {
   return undefined
 }
 
+const scrollTo = (y) =>
+  window.__dispersion?.lenis
+    ? window.__dispersion.lenis.scrollTo(y, { immediate: true })
+    : window.scrollTo({ top: y, behavior: 'instant' })
+
 const browser = await chromium.launch({
   executablePath: findChromium(),
   args: ['--use-gl=angle', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-gpu-rasterization'],
@@ -60,7 +65,7 @@ let cropped = 0
 
 for (let i = 0; i <= STEPS; i++) {
   const y = Math.round((total * i) / STEPS)
-  await page.evaluate((v) => window.scrollTo({ top: v, behavior: 'instant' }), y)
+  await page.evaluate(scrollTo, y)
   await page.waitForTimeout(35)
 
   const r = await page.evaluate(() => {

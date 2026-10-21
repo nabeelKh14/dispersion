@@ -144,16 +144,16 @@ enterBtn.addEventListener('click', () => {
 })
 
 beginBtn?.addEventListener('click', () => {
-  // the first act starts just past the hero
+  // carry the viewer clear of the hero and into the first act
   const first = document.querySelector<HTMLElement>('.scene')
   const target = first?.offsetTop ?? window.innerHeight
-  lenis.scrollTo(target + window.innerHeight * 0.55, { duration: 2.1 })
+  lenis.scrollTo(target + window.innerHeight * 1.15, { duration: 2.1 })
 })
 
 // the BEGIN control retires once the journey is under way
 function syncBegin() {
   if (!beginBtn) return
-  const started = window.scrollY > window.innerHeight * 0.55
+  const started = window.scrollY > window.innerHeight * 0.35
   beginBtn.classList.toggle('is-gone', started)
 }
 
@@ -166,5 +166,30 @@ window.addEventListener('resize', () => {
 requestAnimationFrame(tick)
 boot()
 
-// expose for debugging
-;(window as any).__dispersion = { get world() { return world }, get ui() { return ui } }
+// ── Anchor navigation must go through Lenis, not the native scroll.
+//    A raw element.scrollIntoDefault() or window.scrollTo is overwritten
+//    by Lenis on its next frame, so the page snaps back.
+document.querySelectorAll('a[href^="#"]').forEach((a) => {
+  a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href')
+    if (!id || id === '#') return
+    const target = document.querySelector(id)
+    if (!target) return
+    e.preventDefault()
+    const top = (target as HTMLElement).offsetTop
+    lenis.scrollTo(top, { duration: 1.6, offset: -window.innerHeight * 0.1 })
+  })
+})
+
+// expose for debugging + verification tooling
+;(window as any).__dispersion = {
+  get world() {
+    return world
+  },
+  get ui() {
+    return ui
+  },
+  get lenis() {
+    return lenis
+  },
+}

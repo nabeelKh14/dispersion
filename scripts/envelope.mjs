@@ -24,6 +24,11 @@ function findChromium() {
   return undefined
 }
 
+const scrollTo = (y) =>
+  window.__dispersion?.lenis
+    ? window.__dispersion.lenis.scrollTo(y, { immediate: true })
+    : window.scrollTo({ top: y, behavior: 'instant' })
+
 const browser = await chromium.launch({
   executablePath: findChromium(),
   args: ['--use-gl=angle', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-gpu-rasterization'],
@@ -43,7 +48,7 @@ const samples = 60
 
 for (let i = 0; i <= samples; i++) {
   const y = Math.round((total * i) / samples)
-  await page.evaluate((v) => window.scrollTo({ top: v, behavior: 'instant' }), y)
+  await page.evaluate(scrollTo, y)
   await page.waitForTimeout(120)
 
   const r = await page.evaluate(() => {
@@ -78,7 +83,7 @@ console.log('WORST_OVERLAP_SUM', worstOverlap.toFixed(3), 'at sample', worstAt)
 console.log('BLANK_FRAMES', blankFrames, '/', samples)
 
 // the final CTA must exist and be reachable
-await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' }))
+await page.evaluate(() => window.__dispersion?.lenis?.scrollTo(document.body.scrollHeight, { immediate: true }))
 await page.waitForTimeout(600)
 const cta = await page.evaluate(() => {
   const el = document.getElementById('contact')
@@ -90,7 +95,7 @@ console.log('CTA', JSON.stringify(cta))
 
 // mobile check
 await page.setViewportSize({ width: 390, height: 844 })
-await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }))
+await page.evaluate(() => window.__dispersion?.lenis?.scrollTo(0, { immediate: true }))
 await page.waitForTimeout(900)
 await page.screenshot({ path: '/Users/openclaw/.hermes/cache/scratch/disp_mobile.png' })
 const mob = await page.evaluate(() => {
