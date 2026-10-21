@@ -9,9 +9,21 @@ so the rainbow is physically ray-traced, not faked.
 import bpy, bmesh, math, os, sys, mathutils
 from mathutils import Vector
 
-argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
+# Blender strips the "--" separator when it invokes a --python script, so
+# sys.argv may or may not contain it depending on the invocation form.
+# Parse the flags directly instead of trusting the separator to be there.
+_argv = sys.argv[1:]
+if "--" in _argv:
+    _argv = _argv[_argv.index("--") + 1:]
+
+
 def arg(k, d=None):
-    return argv[argv.index(k) + 1] if k in argv else d
+    for i, a in enumerate(_argv):
+        if a == k and i + 1 < len(_argv):
+            return _argv[i + 1]
+        if a.startswith(k + "="):
+            return a.split("=", 1)[1]
+    return d
 
 OUT      = arg("out", "/Users/openclaw/dispersion/blender/out")
 RES_X    = int(arg("rx", 1920))

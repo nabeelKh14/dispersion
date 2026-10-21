@@ -1,0 +1,18 @@
+{
+  "name": "DISPERSION — PrismAI",
+  "short_name": "DISPERSION",
+  "description": "A trading engine built on dispersion. One market, separated into everything it always contained.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#04060b",
+  "theme_color": "#04060b",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
