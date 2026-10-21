@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>DISPERSION — PrismAI</title>
+    <meta
+      name="description"
+      content="A trading engine built on dispersion. One market, separated into everything it always contained."
+    />
+    <meta name="theme-color" content="#04060b" />
+    <meta property="og:title" content="DISPERSION — PrismAI" />
+    <meta
+      property="og:description"
+      content="A trading engine built on dispersion. One market, separated into everything it always contained."
+    />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <!-- ══ preloader ══ -->
+    <div id="preloader" class="preloader">
+      <div class="preloader__mark">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <polygon class="preloader__prism" points="60,14 106,96 14,96" />
+          <line class="preloader__ray" x1="-6" y1="55" x2="58" y2="55" />
+        </svg>
+      </div>
+      <div class="preloader__meta">
+        <span class="preloader__label" data-preloader-label>CALIBRATING REFRACTIVE INDEX</span>
+        <span class="preloader__pct" data-preloader-pct>00</span>
+      </div>
+      <button class="preloader__enter" data-enter hidden>
+        <span>ENTER</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v14M5 13l7 7 7-7" /></svg>
+      </button>
+    </div>
+
+    <!-- ══ persistent chrome ══ -->
+    <header class="chrome chrome--top">
+      <a class="chrome__logo" href="#top" aria-label="Dispersion home">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <polygon points="12,2.5 21,19.5 3,19.5" />
+        </svg>
+        <span>DISPERSION</span>
+      </a>
+      <nav class="chrome__nav">
+        <a href="#spectrum">The engine</a>
+        <a href="#proof">The record</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <button class="chrome__sound" data-sound aria-pressed="false">
+        <span class="chrome__sound-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span data-sound-label>SOUND OFF</span>
+      </button>
+    </header>
+
+    <div class="chrome chrome--rail" aria-hidden="true">
+      <span class="chrome__rail-count" data-rail-count>01</span>
+      <span class="chrome__rail-line"><i data-rail-fill></i></span>
+      <span class="chrome__rail-total">07</span>
+    </div>
+
+    <div class="chrome chrome__scroll" aria-hidden="true">
+      <span>SCROLL</span>
+      <i></i>
+    </div>
+
+    <!-- ══ the 3D world ══ -->
+    <canvas id="stage" class="stage" aria-hidden="true"></canvas>
+    <div class="stage__fallback" data-fallback hidden>
+      <p>Your browser cannot render the live scene. The story still reads below.</p>
+    </div>
+
+    <!-- ══ the journey ══ -->
+    <main id="journey" class="journey"></main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

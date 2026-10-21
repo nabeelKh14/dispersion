@@ -1,0 +1,12 @@
+node_modules
+dist
+.DS_Store
+*.local
+.vercel
+.vite
+
+# render scratch — regenerate with scripts/capture.mjs
+blender/frames
+blender/test
+blender/eevee
+blender/out

@@ -1,0 +1,1 @@
+{"root":["./src/main.ts","./src/audio/ambience.ts","./src/data/scenes.ts","./src/scene/environment.ts","./src/scene/prism.ts","./src/scene/rays.ts","./src/scene/studio.ts","./src/scene/world.ts","./src/ui/ui.ts"],"version":"5.9.3"}
