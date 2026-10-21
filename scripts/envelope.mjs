@@ -47,11 +47,15 @@ for (let i = 0; i <= samples; i++) {
   await page.waitForTimeout(120)
 
   const r = await page.evaluate(() => {
-    const scenes = Array.from(document.querySelectorAll('.scene'))
-    const ops = scenes.map((s) => {
-      const copy = s.querySelector('.scene__copy')
-      if (!copy) return 0
-      const o = parseFloat(getComputedStyle(copy).opacity)
+    const inScene = Array.from(document.querySelectorAll('.scene')).some((s) => {
+      const t = s.offsetTop
+      return window.scrollY + window.innerHeight * 0.5 >= t &&
+        window.scrollY + window.innerHeight * 0.5 < t + s.offsetHeight
+    })
+    const slots = Array.from(document.querySelectorAll('.copy-slot'))
+    const ops = slots.map((s) => {
+      const copy = s.querySelector('.scene__copy') ?? s
+      const o = parseFloat(getComputedStyle(s).opacity)
       const rect = copy.getBoundingClientRect()
       // only count copy that is actually inside the viewport
       const visible = rect.bottom > 0 && rect.top < window.innerHeight
@@ -60,12 +64,14 @@ for (let i = 0; i <= samples; i++) {
     // sum of all opacities: >1.05 means two panels are meaningfully visible
     const sum = ops.reduce((a, b) => a + b, 0)
     const max = Math.max(...ops)
-    return { sum, max, ops, id: scenes.findIndex((_, k) => ops[k] === max) }
+    return { sum, max, ops, inScene, id: slots.findIndex((_, k) => ops[k] === max) }
   })
 
   if (r.sum > worstOverlap) { worstOverlap = r.sum; worstAt = i }
-  // a frame with no copy at all in the middle of the journey is a gap
-  if (i > 4 && i < samples - 6 && r.max < 0.12) blankFrames++
+  // a frame with no copy at all in the middle of the journey is a gap.
+  // The reel + CTA sections legitimately have no overlay copy, so only
+  // count frames that fall inside a scene spacer.
+  if (r.inScene && r.max < 0.12) blankFrames++
 }
 
 console.log('WORST_OVERLAP_SUM', worstOverlap.toFixed(3), 'at sample', worstAt)

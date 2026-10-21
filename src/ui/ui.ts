@@ -78,7 +78,7 @@ function filmMarkup() {
           playsinline
           muted
           loop
-          preload="metadata"
+          preload="auto"
         ></video>
         <div class="film__veil" data-film-veil></div>
         <button class="film__play" data-film-play aria-label="Play the dispersion reel">
@@ -223,6 +223,15 @@ export class UI {
     this.filmPlay?.addEventListener('click', () => {
       v.currentTime = 0
       void v.play()
+    })
+
+    // If the stream is interrupted the poster stays on screen, so the
+    // frame never renders empty.
+    v.addEventListener('error', () => {
+      v.classList.add('is-failed')
+    })
+    v.addEventListener('stalled', () => {
+      /* the browser is re-requesting a range; the frame keeps the poster */
     })
 
     const attempt = () => {

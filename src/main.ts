@@ -94,6 +94,7 @@ function syncScroll() {
   lastScroll = scroll
   world?.setProgress(progress)
   ui?.update(progress)
+  syncBegin()
 }
 
 /* ═══════════════ loop ═══════════════ */
@@ -132,6 +133,8 @@ soundBtn.addEventListener('click', async () => {
   soundLabel.textContent = 'SOUND ON'
 })
 
+const beginBtn = document.querySelector('[data-begin]')
+
 enterBtn.addEventListener('click', () => {
   preloader.classList.add('is-gone')
   lenis.scrollTo(0, { immediate: true })
@@ -139,6 +142,20 @@ enterBtn.addEventListener('click', () => {
     lenis.scrollTo(window.innerHeight * 0.02, { duration: 2.4 })
   })
 })
+
+beginBtn?.addEventListener('click', () => {
+  // the first act starts just past the hero
+  const first = document.querySelector<HTMLElement>('.scene')
+  const target = first?.offsetTop ?? window.innerHeight
+  lenis.scrollTo(target + window.innerHeight * 0.55, { duration: 2.1 })
+})
+
+// the BEGIN control retires once the journey is under way
+function syncBegin() {
+  if (!beginBtn) return
+  const started = window.scrollY > window.innerHeight * 0.55
+  beginBtn.classList.toggle('is-gone', started)
+}
 
 window.addEventListener('resize', () => {
   world?.resize()
